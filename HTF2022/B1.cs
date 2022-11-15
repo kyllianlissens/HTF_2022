@@ -54,7 +54,7 @@ namespace HTF2022
             Console.WriteLine($"Production endpoint response: {productionPostResponseValue}");
         }
 
-        static string? GetWord(List<IGrouping<char, char>> chars)
+        private static string? GetWord(List<IGrouping<char, char>> chars)
         {
             var word = new char[chars.Max(x => x.Count())];
             foreach (var character in chars)
@@ -64,7 +64,7 @@ namespace HTF2022
             return new string(word);
         }
 
-        static List<string> GetCharacterAndCount(IEnumerable<string> strings)
+        private static List<string> GetCharacterAndCount(IEnumerable<string> strings)
         {
             return (from VARIABLE in strings select VARIABLE.ToCharArray().GroupBy(x => x) into perChar select perChar.ToList() into chars select GetWord(chars)).ToList();
         }
