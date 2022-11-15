@@ -27,15 +27,15 @@ namespace HTF2022 // Note: actual namespace depends on the project name.
 
         
             Console.WriteLine("#B-1 \n");
-            B1.LocalExecution();
-            //B1.TestExecution();
-            //B1.ProductionExecution();
+            //B1.LocalExecution();
+            //await B1.TestExecution();
+            //await B1.ProductionExecution();
 
 
             Console.WriteLine("#B-2 \n");
             B2.LocalExecution();
-            //B2.TestExecution();
-            //B2.ProductionExecution();
+            await B2.TestExecution();
+            await B2.ProductionExecution();
 
 
             Console.WriteLine("#B-3 \n");
