@@ -54,13 +54,12 @@ internal static class A3
             Room = initialResponse!.RoomNr,
             Doors = initialResponse.Doors!.Select(x => new Door { DoorNr = x }).ToList()
         };
-
+        
         roomList.Add(room);
 
-
         var continueLoop = true;
-
         var currentRoomNr = 1;
+
         do
         {
             var currentRoom = roomList.Find(x => x.Room == currentRoomNr);

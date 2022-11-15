@@ -26,12 +26,12 @@ namespace HTF2022
         internal static async Task TestExecution()
         {
             Console.WriteLine("-Test Execution: \n");
-            var testData = await clientInstance.client.GetFromJsonAsync<List<string>>(testUrl);
+            var testData = await clientInstance.Client.GetFromJsonAsync<List<string>>(testUrl);
             Console.WriteLine($"Test endpoint data: {string.Join("; ", testData)}");
             var combos = GetAllCombinations(testData);
             var testSolution = string.Join("", combos);
             Console.WriteLine(testSolution);
-            var testPostResponse = await clientInstance.client.PostAsJsonAsync<string>(testUrl, testSolution);
+            var testPostResponse = await clientInstance.Client.PostAsJsonAsync<string>(testUrl, testSolution);
             var testPostResponseValue = await testPostResponse.Content.ReadAsStringAsync();
             Console.WriteLine($"Test endpoint response: {testPostResponseValue}");
 
@@ -40,12 +40,12 @@ namespace HTF2022
         internal static async Task ProductionExecution()
         {
             Console.WriteLine("-Production Execution: \n");
-            var productionData = await clientInstance.client.GetFromJsonAsync<List<string>>(productionUrl);
+            var productionData = await clientInstance.Client.GetFromJsonAsync<List<string>>(productionUrl);
             Console.WriteLine($"Test endpoint data: {string.Join("; ", productionData)}");
             var combos = GetAllCombinations(productionData).Where(x => x.Distinct().Count() == 1 && !x.Contains(" ")).Select(x => new string(x.Distinct().ToArray()));
             var productionSolution = string.Join("", combos);
             Console.WriteLine(productionSolution);
-            var productionPostResponse = await clientInstance.client.PostAsJsonAsync<string>(productionUrl, productionSolution);
+            var productionPostResponse = await clientInstance.Client.PostAsJsonAsync<string>(productionUrl, productionSolution);
             var productionPostResponseValue = await productionPostResponse.Content.ReadAsStringAsync();
             Console.WriteLine($"Production endpoint response: {productionPostResponseValue}");
 
