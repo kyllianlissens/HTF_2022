@@ -4,8 +4,8 @@ namespace HTF2022
 {
     internal static class B3
     {
-        private static readonly string testUrl = "";
-        private static readonly string productionUrl = "";
+        private static readonly string testUrl = "/api/path/2/hard/Sample";
+        private static readonly string productionUrl = "/api/path/2/hard/Puzzle";
 
         private static readonly HTTPInstance clientInstance = new();
 

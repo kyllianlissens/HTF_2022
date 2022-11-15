@@ -13,7 +13,7 @@ namespace HTF2022
         {
             client = new HttpClient
             {
-                BaseAddress = new Uri("")
+                BaseAddress = new Uri("https://app-htf-2022.azurewebsites.net")
             };
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         }

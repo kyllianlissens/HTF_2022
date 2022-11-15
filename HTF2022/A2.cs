@@ -8,8 +8,8 @@ namespace HTF2022
 
     internal static class A2
     {
-        private static readonly string testUrl = "";
-        private static readonly string productionUrl = "";
+        private static readonly string testUrl = "/api/path/1/medium/Sample";
+        private static readonly string productionUrl = "/api/path/1/medium/Puzzle";
 
         private static readonly HTTPInstance clientInstance = new();
 
