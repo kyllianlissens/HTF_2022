@@ -8,18 +8,18 @@ namespace HTF2022 // Note: actual namespace depends on the project name.
     {
         public static async Task Main(string[] args)
         {
-            Console.WriteLine("#A-1 \n");
-            A1.LocalExecution();
+            Console.WriteLine("#A-1 \n Done \n");
+            //A1.LocalExecution();
             //await A1.TestExecution();
             //await A1.ProductionExecution();
             
 
-            Console.WriteLine("#A-2 \n");
+            Console.WriteLine("#A-2 \n Done \n");
             A2.LocalExecution();
             //await A2.TestExecution();
             //await A2.ProductionExecution();
 
-            
+
             Console.WriteLine("#A-3 \n");
             A3.LocalExecution();
             //await A3.TestExecution();

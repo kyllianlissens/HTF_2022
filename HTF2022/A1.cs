@@ -1,67 +1,146 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http.Json;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace HTF2022
 {
-    internal static class A1
+    public static class Roman
     {
+        public static readonly Dictionary<char, int> RomanNumberDictionary;
+        public static readonly Dictionary<int, string> NumberRomanDictionary;
 
-        private static Dictionary<char, int> RomanMap = new Dictionary<char, int>()
+        static Roman()
         {
-            {'I', 1},
-            {'V', 5},
-            {'X', 10},
-            {'L', 50},
-            {'C', 100},
-            {'D', 500},
-            {'M', 1000}
+            RomanNumberDictionary = new Dictionary<char, int>
+        {
+            { 'I', 1 },
+            { 'V', 5 },
+            { 'X', 10 },
+            { 'L', 50 },
+            { 'C', 100 },
+            { 'D', 500 },
+            { 'M', 1000 },
         };
 
+            NumberRomanDictionary = new Dictionary<int, string>
+        {
+            { 1000, "M" },
+            { 900, "CM" },
+            { 500, "D" },
+            { 400, "CD" },
+            { 100, "C" },
+            { 90, "XC" },
+            { 50, "L" },
+            { 40, "XL" },
+            { 10, "X" },
+            { 9, "IX" },
+            { 5, "V" },
+            { 4, "IV" },
+            { 1, "I" },
+        };
+        }
 
-        private static readonly string testUrl = "/api/path/1/easy/Sample";
-        private static readonly string productionUrl = "/api/path/1/easy/Puzzle";
+        public static string To(int number)
+        {
+            var roman = new StringBuilder();
 
-        private static readonly HTTPInstance clientInstance = new();
+            foreach (var item in NumberRomanDictionary)
+            {
+                while (number >= item.Key)
+                {
+                    roman.Append(item.Value);
+                    number -= item.Key;
+                }
+            }
+
+            return roman.ToString();
+        }
+
+        public static int From(string roman)
+        {
+            var total = 0;
+
+            var previousRoman = '\0';
+
+            foreach (var t in roman)
+            {
+                var previous = previousRoman != '\0' ? RomanNumberDictionary[previousRoman] : '\0';
+                var current = RomanNumberDictionary[t];
+
+                if (previous != 0 && current > previous)
+                {
+                    total = total - (2 * previous) + current;
+                }
+                else
+                {
+                    total += current;
+                }
+
+                previousRoman = t;
+            }
+
+            return total;
+        }
+    }
+    
+    internal static class A1
+    {
+        private const string TestUrl = "/api/path/1/easy/Sample";
+        private const string ProductionUrl = "/api/path/1/easy/Puzzle";
+
+        private static readonly HTTPInstance ClientInstance = new();
 
         internal static void LocalExecution()
         {
             Console.WriteLine("-Local Execution: \n");
             //test RomanToNumber
-            Console.WriteLine("RomanToNumber(\"IL\") = " + RomanToNumber("IL"));
-            Console.WriteLine("RomanToNumber(\"XLVIII\") = " + RomanToNumber("XLVIII"));
+            Console.WriteLine("RomanFrom(\"IL\") = " + Roman.From("IL"));
+            Console.WriteLine("RomanFrom(\"XLVIII\") = " + Roman.From("XLVIII"));
 
         }
 
         internal static async Task TestExecution()
         {
             Console.WriteLine("-Test Execution: \n");
+            var response = await ClientInstance.client.GetFromJsonAsync<List<string>>(TestUrl);
+
+            foreach (var item in response)
+            {
+                Console.WriteLine("RomanFrom(\"" + item + "\") = " + Roman.From(item));
+            }
+            var numbers = response.Select(Roman.From).ToList();
+            var sum = numbers.Sum();
+            Console.WriteLine("Sum of all numbers = " + sum);
+            Console.WriteLine("Sum in Roman = " + Roman.To(sum));
+            
+            var testPostResponse = await ClientInstance.client.PostAsJsonAsync<string>(TestUrl, Roman.To(sum));
+            var testPostResponseValue = await testPostResponse.Content.ReadAsStringAsync();
+            Console.WriteLine($"Test endpoint response: {testPostResponseValue}");
 
         }
 
         internal static async Task ProductionExecution()
         {
             Console.WriteLine("-Production Execution: \n");
-
-        }
-
-        internal static int RomanToNumber(string input)
-        {
-            int number = 0;
-            for (int i = 0; i < input.Length; i++)
+            var response = await ClientInstance.client.GetFromJsonAsync<List<String>>(ProductionUrl);
+            Console.WriteLine("Response: ");
+            foreach (var item in response)
             {
-                if (i + 1 < input.Length && RomanMap[input[i]] < RomanMap[input[i + 1]])
-                {
-                    number -= RomanMap[input[i]];
-                }
-                else
-                {
-                    number += RomanMap[input[i]];
-                }
+                Console.WriteLine("RomanFrom(\"" + item + "\") = " + Roman.From(item));
             }
-            return number;
+            var numbers = response.Select(Roman.From).ToList();
+            var sum = numbers.Sum();
+            Console.WriteLine("Sum of all numbers = " + sum);
+            Console.WriteLine("Sum in Roman = " + Roman.To(sum));
+
+            var productionPostResponse = await ClientInstance.client.PostAsJsonAsync<string>(ProductionUrl, Roman.To(sum));
+            var productionPostResponseValue = await productionPostResponse.Content.ReadAsStringAsync();
+            Console.WriteLine($"Production endpoint response: {productionPostResponseValue}");
 
         }
+
     }
 }
