@@ -19,23 +19,39 @@ namespace HTF2022
 
         internal static void LocalExecution()
         {
-            var list = new List<string>(){"test","string"};
-            var chars = GetCharacterAndCount(list);
-            Console.WriteLine(GetWord(chars));
             Console.WriteLine("-Local Execution: \n");
-           
+            var list = new List<string>(){ "cosuuscsshocsuu", "ucsssscucuoopsu", "assssapttt"};
+            var chars = GetCharacterAndCount(list);
+            var testSolution = string.Join(" ", chars);
+            Console.WriteLine(testSolution);
+
         }
 
         internal async static Task TestExecution()
         {
             Console.WriteLine("-Test Execution: \n");
-            
+            var testData = await clientInstance.client.GetFromJsonAsync<List<string>>(testUrl);
+            Console.WriteLine($"Test endpoint data: {string.Join("; ", testData)}");
+            var chars = GetCharacterAndCount(testData);
+            var testSolution = string.Join(" ",chars);
+            Console.WriteLine(testSolution);
+            var testPostResponse = await clientInstance.client.PostAsJsonAsync<string>(testUrl, testSolution);
+            var testPostResponseValue = await testPostResponse.Content.ReadAsStringAsync();
+            Console.WriteLine($"Test endpoint response: {testPostResponseValue}");
+
         }
 
         internal async static Task ProductionExecution()
         {
             Console.WriteLine("-Production Execution: \n");
-           
+            var productionData = await clientInstance.client.GetFromJsonAsync<List<string>>(productionUrl);
+            Console.WriteLine($"Test endpoint data: {string.Join("; ", productionData)}");
+            var chars = GetCharacterAndCount(productionData);
+            var productionSolution = string.Join(" ", chars);
+            Console.WriteLine(productionSolution);
+            var productionPostResponse = await clientInstance.client.PostAsJsonAsync<string>(productionUrl, productionSolution);
+            var productionPostResponseValue = await productionPostResponse.Content.ReadAsStringAsync();
+            Console.WriteLine($"Production endpoint response: {productionPostResponseValue}");
         }
 
         static string? GetWord(List<IGrouping<char, char>> chars)
@@ -48,9 +64,9 @@ namespace HTF2022
             return new string(word);
         }
 
-        static List<IGrouping<char, char>> GetCharacterAndCount(IEnumerable<string> strings)
+        static List<string> GetCharacterAndCount(IEnumerable<string> strings)
         {
-            return strings.SelectMany(VARIABLE => VARIABLE.ToCharArray().GroupBy(x => x)).ToList();
+            return (from VARIABLE in strings select VARIABLE.ToCharArray().GroupBy(x => x) into perChar select perChar.ToList() into chars select GetWord(chars)).ToList();
         }
     }
 }
