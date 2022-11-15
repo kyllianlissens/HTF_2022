@@ -55,15 +55,28 @@ namespace HTF2022
             
             var productionData = await clientInstance.Client.GetFromJsonAsync<Caesar>(productionUrl);
             Console.WriteLine($"Test endpoint data: {string.Join("; ", productionData.cipheredWords)}");
+            var decryptedWords = productionData.cipheredWords.Select(x => Decrypt(x, 14));
 
-            foreach (var VARIABLE in productionData.cipheredWords)
+            //foreach decryptedWords print
+            foreach (var decryptedWord in decryptedWords)
             {
-                Console.WriteLine(Decrypt(VARIABLE, 14));
+                Console.WriteLine(decryptedWord);
             }
 
-            for (int i = 0; i < 20; i++)
+            for (var i = 0; i < 26; i++)
             {
-                
+                Console.WriteLine();
+                var decryptedGrid = DecyptGrid(productionData.grid, i);
+                var ids = new List<List<int>>();
+                foreach (var decryptedWord in decryptedWords)
+                {
+                    ids.Add(FindWords(decryptedGrid, decryptedWord));
+                }
+
+                Console.WriteLine(ids.Count(x => x != null));
+                Console.WriteLine(decryptedWords.Count());
+                Console.WriteLine();
+
             }
 
             //Console.WriteLine(productionSolution);
@@ -77,7 +90,6 @@ namespace HTF2022
             foreach (var VARIABLE in grid)
             {
                 VARIABLE.content = Decrypt(VARIABLE.content, key);
-
             }
 
             return grid;
@@ -162,7 +174,7 @@ namespace HTF2022
         }
         public static List<int> FindWords(List<Grid> grid, string word, bool reversed = false)
         {
-            var ids = new List<int>();
+             List<int>? ids = null;
           
             var starts = grid.Where(x => x.content[0] == word[0]);
             foreach (var coordinate in starts)
