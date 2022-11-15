@@ -33,35 +33,55 @@ namespace HTF2022
         internal static async Task TestExecution()
         {
             Console.WriteLine("-Test Execution: \n");
-            var testData = await clientInstance.client.GetFromJsonAsync<Caesar>(testUrl);
+            var testData = await clientInstance.Client.GetFromJsonAsync<Caesar>(testUrl);
             Console.WriteLine($"Test endpoint data: {string.Join("; ", testData)}");
-            var testSolution = "";
             var decryptedWords = testData.cipheredWords.Select(x => Decrypt(x, 10));
             var ids = new List<int>();
             foreach (var decryptedWord in decryptedWords)
             {
-                Console.WriteLine(decryptedWord);
-                foreach (var id in FindWords(testData.grid, decryptedWord))
-                {
-                   ids.Add(id); 
-                }
-
-                Console.WriteLine();
+                ids.AddRange(FindWords(testData.grid, decryptedWord));
             }
+            var testSolution = testData.grid.Where(x => !ids.Contains(x.id)).OrderBy(x => x.id).Select(x => x.content).ToArray();
 
-     
-
-            //Console.WriteLine(testSolution);
-            //var testPostResponse = await clientInstance.client.PostAsJsonAsync<string>(testUrl, testSolution);
-            //var testPostResponseValue = await testPostResponse.Content.ReadAsStringAsync();
-            //Console.WriteLine($"Test endpoint response: {testPostResponseValue}");
+            var testPostResponse = await clientInstance.Client.PostAsJsonAsync<string[]>(testUrl, testSolution);
+            var testPostResponseValue = await testPostResponse.Content.ReadAsStringAsync();
+            Console.WriteLine($"Test endpoint response: {testPostResponseValue}");
         }
 
-        internal static void ProductionExecution()
+        internal static async Task ProductionExecution()
         {
             Console.WriteLine("-Production Execution: \n");
+            Console.WriteLine("-Production Execution: \n");
+            
+            var productionData = await clientInstance.Client.GetFromJsonAsync<Caesar>(productionUrl);
+            Console.WriteLine($"Test endpoint data: {string.Join("; ", productionData.cipheredWords)}");
+
+            foreach (var VARIABLE in productionData.cipheredWords)
+            {
+                Console.WriteLine(Decrypt(VARIABLE, 14));
+            }
+
+            for (int i = 0; i < 20; i++)
+            {
+                
+            }
+
+            //Console.WriteLine(productionSolution);
+            //var productionPostResponse = await clientInstance.Client.PostAsJsonAsync<string>(productionUrl, productionSolution);
+            //var productionPostResponseValue = await productionPostResponse.Content.ReadAsStringAsync();
+            //Console.WriteLine($"Production endpoint response: {productionPostResponseValue}");
         }
 
+        static List<Grid> DecyptGrid(List<Grid> grid, int key)
+        {
+            foreach (var VARIABLE in grid)
+            {
+                VARIABLE.content = Decrypt(VARIABLE.content, key);
+
+            }
+
+            return grid;
+        }
 
         static (bool, Grid) MoveDiagonalRight(Grid coordinate, List<Grid> matrix, string word)
         {
@@ -143,17 +163,10 @@ namespace HTF2022
         public static List<int> FindWords(List<Grid> grid, string word, bool reversed = false)
         {
             var ids = new List<int>();
-            if (word == "class")
-            {
-                Console.WriteLine();
-            }
+          
             var starts = grid.Where(x => x.content[0] == word[0]);
             foreach (var coordinate in starts)
             {
-                if (coordinate.y == 15 && word == "class")
-                {
-                    Console.WriteLine();
-                }
                 var horizontal = MoveHorizontal(coordinate, grid, word);
                 var vertical = MoveVertical(coordinate, grid, word);
                 var diaLeft = MoveDiagonalLeft(coordinate, grid, word);
@@ -167,9 +180,9 @@ namespace HTF2022
                     return GetIds(coordinate, diaRight.Item2, word, 1, 1, grid);
 
                 if(diaLeft.Item1)
-                    return GetIds(coordinate, diaLeft.Item2, word, 1, 1, grid);
+                    return GetIds(coordinate, diaLeft.Item2, word, -1, 1, grid);
                 
-                if (!reversed)
+                if (!reversed && coordinate.id == starts.Last().id)
                     return FindWords(grid, Reverse(word), true);
             }
 
