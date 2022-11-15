@@ -55,14 +55,7 @@ namespace HTF2022
             
             var productionData = await clientInstance.Client.GetFromJsonAsync<Caesar>(productionUrl);
             var decryptedWords = productionData.cipheredWords.Select(x => Decrypt(x, 14));
-
-            //6 
-            var decryptedGrid = DecyptGrid(productionData.grid, 18);
-            var ids = new List<List<int>>();
-            foreach (var decryptedWord in decryptedWords)
-            {
-                ids.Add(FindWords(decryptedGrid, decryptedWord));
-            }
+            
             {
                 Console.WriteLine();
                 var decryptedGrid = DecyptGrid(productionData.grid, i);
