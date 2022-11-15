@@ -33,7 +33,7 @@ namespace HTF2022
         internal static async Task TestExecution()
         {
             Console.WriteLine("-Test Execution: \n");
-            var testData = await clientInstance.client.GetFromJsonAsync<Caesar>(testUrl);
+            var testData = await clientInstance.Client.GetFromJsonAsync<Caesar>(testUrl);
             Console.WriteLine($"Test endpoint data: {string.Join("; ", testData)}");
             var testSolution = "";
             var decryptedWords = testData.cipheredWords.Select(x => Decrypt(x, 10));
@@ -143,17 +143,10 @@ namespace HTF2022
         public static List<int> FindWords(List<Grid> grid, string word, bool reversed = false)
         {
             var ids = new List<int>();
-            if (word == "class")
-            {
-                Console.WriteLine();
-            }
+          
             var starts = grid.Where(x => x.content[0] == word[0]);
             foreach (var coordinate in starts)
             {
-                if (coordinate.y == 15 && word == "class")
-                {
-                    Console.WriteLine();
-                }
                 var horizontal = MoveHorizontal(coordinate, grid, word);
                 var vertical = MoveVertical(coordinate, grid, word);
                 var diaLeft = MoveDiagonalLeft(coordinate, grid, word);
@@ -167,9 +160,9 @@ namespace HTF2022
                     return GetIds(coordinate, diaRight.Item2, word, 1, 1, grid);
 
                 if(diaLeft.Item1)
-                    return GetIds(coordinate, diaLeft.Item2, word, 1, 1, grid);
+                    return GetIds(coordinate, diaLeft.Item2, word, -1, 1, grid);
                 
-                if (!reversed)
+                if (!reversed && coordinate.id == starts.Last().id)
                     return FindWords(grid, Reverse(word), true);
             }
 
