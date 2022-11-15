@@ -14,12 +14,12 @@ namespace HTF2022 // Note: actual namespace depends on the project name.
             //await A1.ProductionExecution();
             
 
-            Console.WriteLine("#A-2 \n");
+            Console.WriteLine("#A-2 \n Done \n");
             A2.LocalExecution();
             //await A2.TestExecution();
             //await A2.ProductionExecution();
 
-            
+
             Console.WriteLine("#A-3 \n");
             A3.LocalExecution();
             //await A3.TestExecution();
