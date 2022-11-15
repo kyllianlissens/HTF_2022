@@ -55,17 +55,21 @@ namespace HTF2022
             
             var productionData = await clientInstance.Client.GetFromJsonAsync<Caesar>(productionUrl);
             var decryptedWords = productionData.cipheredWords.Select(x => Decrypt(x, 14));
-
-            var decryptedGrid = DecyptGrid(new List<Grid>(productionData.grid), 6);
-            var ids = new List<List<int>>();
-            foreach (var decryptedWord in decryptedWords)
+            
             {
-                ids.Add(FindWords(decryptedGrid, decryptedWord));
-            }
+                Console.WriteLine();
+                var decryptedGrid = DecyptGrid(productionData.grid, i);
+                var ids = new List<List<int>>();
+                foreach (var decryptedWord in decryptedWords)
+                {
+                    ids.Add(FindWords(decryptedGrid, decryptedWord));
+                }
 
-            Console.WriteLine(ids.Count(x => x != null));
-            Console.WriteLine(decryptedWords.Count());
-            Console.WriteLine();
+                Console.WriteLine(ids.Count(x => x != null));
+                Console.WriteLine(decryptedWords.Count());
+                Console.WriteLine();
+
+            }
 
 
 
@@ -75,6 +79,24 @@ namespace HTF2022
             //Console.WriteLine($"Production endpoint response: {productionPostResponseValue}");
         }
 
+        static void printGrid(List<Grid> grid)
+        {
+            var z = new string[grid.Max(x => x.x), grid.Max(x => x.x)];
+            foreach (var VARIABLE in grid)
+            {
+                z[VARIABLE.x - 1, VARIABLE.y - 1] = VARIABLE.content;
+            }
+
+            for (int i = 0; i < z.GetLength(0); i++)
+            {
+                for (int j = 0; j < z.GetLength(1); j++)
+                {
+                    Console.Write(z[i,j]+" ");
+                }
+
+                Console.WriteLine();
+            }
+        }
         static List<Grid> DecyptGrid(List<Grid> grid, int key)
         {
 
@@ -126,11 +148,11 @@ namespace HTF2022
             }
             (int maxX, int maxY) = (matrix.Max(x => x.x), matrix.Max(x => x.y));
 
-            if (coordinate.x < 0 && coordinate.y < maxY)
+            if (coordinate.x > 1 && coordinate.y < maxY)
             {
                 if (word[0] == coordinate.content[0])
                 {
-                    MoveDiagonalRight(matrix.First(x => x.x == coordinate.x - 1 && x.y == coordinate.y + 1), matrix, word[1..]);
+                    MoveDiagonalLeft(matrix.First(x => x.x == coordinate.x - 1 && x.y == coordinate.y + 1), matrix, word[1..]);
                 }
 
             }
@@ -207,12 +229,11 @@ namespace HTF2022
 
         static List<int> GetIds(Grid start, Grid end, string word, int cx, int cy , List<Grid> matrix)
         {
-            Console.Write(start.content);
+            Console.Write(word);
             var ids = new List<int>();
             ids.Add(start.id);
             for (int i = 1; i < word.Length; i++)
             {
-                Console.Write(matrix.First(x => x.x == start.x + (i * cx) && x.y == start.y + (i * cy)).content);
                 ids.Add(matrix.First(x => x.x == start.x + (i*cx) && x.y == start.y + (i*cy)).id);
             }
 
