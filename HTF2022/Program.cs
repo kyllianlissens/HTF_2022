@@ -39,7 +39,7 @@ namespace HTF2022 // Note: actual namespace depends on the project name.
 
 
             Console.WriteLine("#B-3 \n");
-            B3.LocalExecution();
+            //B3.LocalExecution();
             //await B3.TestExecution();
             await B3.ProductionExecution();
         }
