@@ -57,8 +57,8 @@ namespace HTF2022
             Console.WriteLine($"Test endpoint data: {string.Join("; ", productionData.cipheredWords)}");
             var decryptedWords = productionData.cipheredWords.Select(x => Decrypt(x, 14));
 
-            
-            var decryptedGrid = DecyptGrid(productionData.grid, 4);
+            //6 
+            var decryptedGrid = DecyptGrid(productionData.grid, 18);
             var ids = new List<List<int>>();
             foreach (var decryptedWord in decryptedWords)
             {

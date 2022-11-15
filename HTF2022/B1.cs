@@ -64,9 +64,12 @@ namespace HTF2022
             return new string(word);
         }
 
-        static List<string> GetCharacterAndCount(IEnumerable<string> strings)
+        static List<string?> GetCharacterAndCount(IEnumerable<string> strings)
         {
-            return (from VARIABLE in strings select VARIABLE.ToCharArray().GroupBy(x => x) into perChar select perChar.ToList() into chars select GetWord(chars)).ToList();
+            return (from str in strings select str.ToCharArray().GroupBy(x => x) 
+                into perChar select perChar.ToList() 
+                into chars 
+                select GetWord(chars)).ToList();
         }
     }
 }
