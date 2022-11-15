@@ -48,18 +48,9 @@ namespace HTF2022
             return new string(word);
         }
 
-        static List<IGrouping<char, char>> GetCharacterAndCount(List<string> strings)
+        static List<IGrouping<char, char>> GetCharacterAndCount(IEnumerable<string> strings)
         {
-            var chars = new List<IGrouping<char, char>>();
-            foreach (var VARIABLE in strings)
-            {
-                var perChar = VARIABLE.ToCharArray().GroupBy(x => x);
-                foreach (var unique in perChar)
-                {
-                    chars.Add(unique);
-                }
-            }
-            return chars;
+            return strings.SelectMany(VARIABLE => VARIABLE.ToCharArray().GroupBy(x => x)).ToList();
         }
     }
 }
