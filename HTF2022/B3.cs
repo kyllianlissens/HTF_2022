@@ -54,7 +54,6 @@ namespace HTF2022
             Console.WriteLine("-Production Execution: \n");
             
             var productionData = await clientInstance.Client.GetFromJsonAsync<Caesar>(productionUrl);
-            Console.WriteLine($"Test endpoint data: {string.Join("; ", productionData.cipheredWords)}");
             var decryptedWords = productionData.cipheredWords.Select(x => Decrypt(x, 14));
 
             //6 
@@ -64,24 +63,20 @@ namespace HTF2022
             {
                 ids.Add(FindWords(decryptedGrid, decryptedWord));
             }
+            {
+                Console.WriteLine();
+                var decryptedGrid = DecyptGrid(productionData.grid, i);
+                var ids = new List<List<int>>();
+                foreach (var decryptedWord in decryptedWords)
+                {
+                    ids.Add(FindWords(decryptedGrid, decryptedWord));
+                }
 
-            Console.WriteLine(ids.Count(x => x != null));
-            //for (int i = 0; i < 26; i++)
-            //{
-            //    Console.WriteLine(i);
-            //    var decryptedGrid = DecyptGrid(productionData.grid, i);
-            //    var ids = new List<List<int>>();
-            //    foreach (var decryptedWord in decryptedWords)
-            //    {
-            //        ids.Add(FindWords(decryptedGrid, decryptedWord));
-            //    }
+                Console.WriteLine(ids.Count(x => x != null));
+                Console.WriteLine(decryptedWords.Count());
+                Console.WriteLine();
 
-            //    Console.WriteLine(ids.Count(x => x!= null));
-            //    //printGrid(decryptedGrid);
-
-            //}
-
-
+            }
 
             //Console.WriteLine(productionSolution);
             //var productionPostResponse = await clientInstance.Client.PostAsJsonAsync<string>(productionUrl, productionSolution);
@@ -109,12 +104,25 @@ namespace HTF2022
         }
         static List<Grid> DecyptGrid(List<Grid> grid, int key)
         {
+
+            var newList = new List<Grid>();
+
             foreach (var VARIABLE in grid)
             {
-                VARIABLE.content = Decrypt(VARIABLE.content, key);
+
+
+                var newGrid = new Grid
+                {
+                    id = VARIABLE.id,
+                    x = VARIABLE.x,
+                    y = VARIABLE.y,
+                    content = Decrypt(VARIABLE.content, key)
+                };
+                
+                newList.Add(newGrid);
             }
 
-            return grid;
+            return newList;
         }
 
         static (bool, Grid) MoveDiagonalRight(Grid coordinate, List<Grid> matrix, string word)

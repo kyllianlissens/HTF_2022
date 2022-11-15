@@ -54,7 +54,7 @@ namespace HTF2022
             Console.WriteLine($"Production endpoint response: {productionPostResponseValue}");
         }
 
-        static string? GetWord(List<IGrouping<char, char>> chars)
+        private static string? GetWord(List<IGrouping<char, char>> chars)
         {
             var word = new char[chars.Max(x => x.Count())];
             foreach (var character in chars)
