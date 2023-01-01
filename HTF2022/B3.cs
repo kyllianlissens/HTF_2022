@@ -1,6 +1,9 @@
 ﻿using System;
+using System.IO;
 using System.Net.Http.Json;
 using System.Security.Cryptography;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace HTF2022
 {
@@ -41,7 +44,9 @@ namespace HTF2022
             {
                 ids.AddRange(FindWords(testData.grid, decryptedWord));
             }
-            var testSolution = testData.grid.Where(x => !ids.Contains(x.id)).OrderBy(x => x.id).Select(x => x.content).ToArray();
+
+            var testSolution = testData.grid.Where(x => !ids.Contains(x.id)).OrderBy(x => x.id).Select(x => x.content)
+                .ToArray();
 
             var testPostResponse = await clientInstance.Client.PostAsJsonAsync<string[]>(testUrl, testSolution);
             var testPostResponseValue = await testPostResponse.Content.ReadAsStringAsync();
@@ -51,59 +56,40 @@ namespace HTF2022
         internal static async Task ProductionExecution()
         {
             Console.WriteLine("-Production Execution: \n");
-            Console.WriteLine("-Production Execution: \n");
-            
-            var productionData = await clientInstance.Client.GetFromJsonAsync<Caesar>(productionUrl);
+            var json = File.ReadAllText($"{Directory.GetParent(Directory.GetCurrentDirectory())?.Parent?.Parent}/B3prod.json");
+            var productionData = JsonSerializer.Deserialize<Caesar>(json);
+            //var productionData = await clientInstance.Client.GetFromJsonAsync<Caesar>(productionUrl);
+
+
             var decryptedWords = productionData.cipheredWords.Select(x => Decrypt(x, 14));
-            
+
+
+            var ids = new List<int>();
+            productionData.grid = productionData.grid.OrderBy(x => x.y).ThenBy(x => x.x).ToList();
+
+            var d = DecryptGrid(productionData.grid, 6);
+
+            foreach (var decryptedWord in decryptedWords)
             {
-                Console.WriteLine();
-                var decryptedGrid = DecyptGrid(productionData.grid, i);
-                var ids = new List<List<int>>();
-                foreach (var decryptedWord in decryptedWords)
-                {
-                    ids.Add(FindWords(decryptedGrid, decryptedWord));
-                }
-
-                Console.WriteLine(ids.Count(x => x != null));
-                Console.WriteLine(decryptedWords.Count());
-                Console.WriteLine();
-
+                ids.AddRange(FindWords(d, decryptedWord));
             }
+            
+            var productionSolution = productionData.grid.Where(x => !ids.Contains(x.id)).OrderBy(x => x.id)
+                .Select(x => x.content).ToArray();
+            Console.WriteLine(string.Join("", productionSolution)); // res itchitacupitamelakamystica -> itchita copita melaka mystica
 
-            //Console.WriteLine(productionSolution);
-            //var productionPostResponse = await clientInstance.Client.PostAsJsonAsync<string>(productionUrl, productionSolution);
+            //var productionPostResponse = await clientInstance.Client.PostAsJsonAsync<string[]>(productionUrl, productionSolution);
             //var productionPostResponseValue = await productionPostResponse.Content.ReadAsStringAsync();
             //Console.WriteLine($"Production endpoint response: {productionPostResponseValue}");
         }
 
-        static void printGrid(List<Grid> grid)
+
+        static List<Grid> DecryptGrid(List<Grid> grid, int key)
         {
-            var z = new string[grid.Max(x => x.x), grid.Max(x => x.x)];
-            foreach (var VARIABLE in grid)
-            {
-                z[VARIABLE.x - 1, VARIABLE.y - 1] = VARIABLE.content;
-            }
-
-            for (int i = 0; i < z.GetLength(0); i++)
-            {
-                for (int j = 0; j < z.GetLength(1); j++)
-                {
-                    Console.Write(z[i,j]+" ");
-                }
-
-                Console.WriteLine();
-            }
-        }
-        static List<Grid> DecyptGrid(List<Grid> grid, int key)
-        {
-
             var newList = new List<Grid>();
 
             foreach (var VARIABLE in grid)
             {
-
-
                 var newGrid = new Grid
                 {
                     id = VARIABLE.id,
@@ -111,112 +97,48 @@ namespace HTF2022
                     y = VARIABLE.y,
                     content = Decrypt(VARIABLE.content, key)
                 };
-                
+
                 newList.Add(newGrid);
             }
 
             return newList;
         }
-
-        static (bool, Grid) MoveDiagonalRight(Grid coordinate, List<Grid> matrix, string word)
+        
+        
+        private static bool Move(Grid coordinate, IReadOnlyCollection<Grid> matrix, string word, int i, int j)
         {
-            if (word[^1] == coordinate.content[0] && word.Length == 1)
-            {
-                return (true, coordinate);
-            }
-            (int maxX, int maxY) = (matrix.Max(x => x.x), matrix.Max(x => x.y));
+            if (word == coordinate.content && word.Length == 1) return true;
+            var (maxX, maxY) = (matrix.Max(x => x.x), matrix.Max(x => x.y));
+            
+            if (i == -1 && (coordinate.x <= 1 || coordinate.y >= maxY)) return false;
+            if (i == 1 && j == 1 && (coordinate.x >= maxX || coordinate.y >= maxY)) return false;
+            if (i == 1 && j == 0 && coordinate.x >= maxX) return false;
+            if (i == 0 && j == 1 && coordinate.y >= maxY) return false;
 
-            if (coordinate.x < maxX && coordinate.y < maxY)
-            {
-                if (word[0] == coordinate.content[0])
-                {
-                    MoveDiagonalRight(matrix.First(x => x.x == coordinate.x + 1 && x.y == coordinate.y + 1), matrix, word[1..]);
-                }
-
-            }
-
-            return (false, coordinate);
+            return word[0] == coordinate.content[0] &&
+                   Move(matrix.First(x => x.x == coordinate.x + i && x.y == coordinate.y + j), matrix, word[1..], i, j);
         }
 
-        static (bool, Grid) MoveDiagonalLeft(Grid coordinate, List<Grid> matrix, string word)
+        private static List<int> FindWords(List<Grid> grid, string word, bool reversed = false)
         {
-            if (word[^1] == coordinate.content[0] && word.Length == 1)
-            {
-                return (true, coordinate);
-            }
-            (int maxX, int maxY) = (matrix.Max(x => x.x), matrix.Max(x => x.y));
+            var ids = new List<int>();
 
-            if (coordinate.x > 1 && coordinate.y < maxY)
-            {
-                if (word[0] == coordinate.content[0])
-                {
-                    MoveDiagonalLeft(matrix.First(x => x.x == coordinate.x - 1 && x.y == coordinate.y + 1), matrix, word[1..]);
-                }
-
-            }
-
-            return (false, coordinate);
-        }
-
-        static (bool, Grid) MoveVertical(Grid coordinate, List<Grid> matrix, string word)
-        {
-            if (word[^1] == coordinate.content[0] && word.Length == 1)
-            {
-                return (true, coordinate);
-            }
-            (int maxX, int maxY) = (matrix.Max(x => x.x), matrix.Max(x => x.y));
-            if (coordinate.y < maxY)
-            {
-                if (word[0] == coordinate.content[0])
-                {
-                    return MoveVertical(matrix.First(x => x.x == coordinate.x && x.y == coordinate.y + 1), matrix, word[1..]);
-                }
-            }
-
-            return (false, coordinate);
-        }
-
-
-
-        static (bool,Grid) MoveHorizontal(Grid coordinate, List<Grid> matrix, string word)
-        {
-            if (word[^1] == coordinate.content[0] && word.Length == 1)
-            {
-                return (true, coordinate);
-            }
-            (int maxX, int maxY) = (matrix.Max(x => x.x), matrix.Max(x => x.y));
-            if (coordinate.x < maxX)
-            {
-                if (word[0] == coordinate.content[0])
-                {
-                    return MoveHorizontal(matrix.First(x => x.x == coordinate.x + 1 && x.y == coordinate.y ), matrix, word[1..]);
-                }
-            }
-
-            return (false, coordinate);
-        }
-        public static List<int> FindWords(List<Grid> grid, string word, bool reversed = false)
-        {
-             List<int>? ids = null;
-          
-            var starts = grid.Where(x => x.content[0] == word[0]);
+            var starts = grid.Where(x => x.content[0] == word[0]).ToArray();
             foreach (var coordinate in starts)
             {
-                var horizontal = MoveHorizontal(coordinate, grid, word);
-                var vertical = MoveVertical(coordinate, grid, word);
-                var diaLeft = MoveDiagonalLeft(coordinate, grid, word);
-                var diaRight = MoveDiagonalRight(coordinate, grid, word);
-                if (horizontal.Item1 )
-                    return GetIds(coordinate, horizontal.Item2, word, 1, 0, grid);
                 
-                if (vertical.Item1)
-                    return GetIds(coordinate, vertical.Item2, word, 0, 1, grid);
-                if(diaRight.Item1)
-                    return GetIds(coordinate, diaRight.Item2, word, 1, 1, grid);
+                if (Move(coordinate, grid, word,1,0)) // left right
+                    return GetIds(coordinate, word, 1, 0, grid);
+                
+                if (Move(coordinate, grid, word, 0, 1)) // up down
+                    return GetIds(coordinate, word, 0, 1, grid);
 
-                if(diaLeft.Item1)
-                    return GetIds(coordinate, diaLeft.Item2, word, -1, 1, grid);
-                
+                if (Move(coordinate, grid, word, 1, 1)) //top left, bottom right
+                    return GetIds(coordinate, word, 1, 1, grid);
+
+                if (Move(coordinate, grid, word, -1, 1)) // top right, bottom left
+                    return GetIds(coordinate, word, -1, 1, grid);
+
                 if (!reversed && coordinate.id == starts.Last().id)
                     return FindWords(grid, Reverse(word), true);
             }
@@ -225,48 +147,39 @@ namespace HTF2022
             return ids;
         }
 
-        static List<int> GetIds(Grid start, Grid end, string word, int cx, int cy , List<Grid> matrix)
+        static List<int> GetIds(Grid start, string word, int cx, int cy, List<Grid> matrix)
         {
-            Console.Write(word);
             var ids = new List<int>();
             ids.Add(start.id);
             for (int i = 1; i < word.Length; i++)
             {
-                ids.Add(matrix.First(x => x.x == start.x + (i*cx) && x.y == start.y + (i*cy)).id);
+                ids.Add(matrix.First(x => x.x == start.x + (i * cx) && x.y == start.y + (i * cy)).id);
             }
 
-            Console.WriteLine();
             return ids;
         }
 
-        static string Reverse(string s)
+        private static string Reverse(string s)
         {
-            string reverseString = string.Empty;
-            foreach (char c in s)
-            {
-                reverseString = c + reverseString;
-            }
-
-            return reverseString;
+            return s.Aggregate(string.Empty, (current, c) => c + current);
         }
-        public static string Decrypt(String cipherText, int shiftKey)
+
+        private static string Decrypt(String cipherText, int shiftKey)
         {
-            string ALPHABET = "abcdefghijklmnopqrstuvwxyz";
+            const string alphabet = "abcdefghijklmnopqrstuvwxyz";
             cipherText = cipherText.ToLower();
-            String message = "";
-            for (int ii = 0; ii < cipherText.Length; ii++)
+            var message = "";
+            foreach (var t in cipherText)
             {
-                int charPosition = ALPHABET.IndexOf(cipherText[ii]);
-                int keyVal = (charPosition - shiftKey) % 26;
+                var charPosition = alphabet.IndexOf(t);
+                var keyVal = (charPosition - shiftKey) % 26;
                 if (keyVal < 0)
-                {
-                    keyVal = ALPHABET.Length + keyVal;
-                }
-                char replaceVal = ALPHABET[keyVal];
+                    keyVal = 26 + keyVal;
+                
+                var replaceVal = alphabet[keyVal];
                 message += replaceVal;
             }
             return message;
         }
-
     }
 }
